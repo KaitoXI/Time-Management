@@ -1,0 +1,18 @@
+# logs
+logs/
+**/*.log*
+
+# DB migrations
+migrations/
+
+# Python virtual enviroment
+venv/
+**/__pycache__/
+
+# local mock database
+**/*.db
+
+# IDE & Editors
+.vscode/
+.idea/
+**/*.iml
