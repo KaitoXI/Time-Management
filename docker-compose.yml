@@ -1,0 +1,56 @@
+services:
+  webapp:
+    image: 805277/zeitverwaltung
+    build:
+      # build current folder according to description in Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    command: ./startup.sh # startup script to ensure correct initialization of database
+    restart: unless-stopped
+    environment:
+      - FLASK_APP=zeitverwaltung.py
+      - DATABASE=zeitverwaltung
+      - DATABASE_USER=zeitverwaltung-db-user
+      - DATABASE_PASSWORD_FILE=/run/secrets/db_user_pwd
+      - SECRET_KEY_FILE=/run/secrets/secret_key
+    ports:
+      - "5000:5000"
+    links:
+      - mariadb
+    depends_on:
+      - mariadb
+    volumes:
+      - log-volume:/app/logs
+    secrets:
+      - db_user_pwd
+      - secret_key
+    networks:
+      - time_management_network
+
+  mariadb:
+    image: mariadb:10.9.2
+    restart: unless-stopped
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=true # no one knows the root access to the database
+      - MYSQL_DATABASE=zeitverwaltung # creates table zeitverwaltung
+      - MYSQL_USER=zeitverwaltung-db-user # creates user zeitverwaltung-db-user
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_user_pwd # password for the user to be created is in the secret file
+    volumes:
+      - db-volume:/var/lib/mysql
+    secrets:
+      - db_user_pwd
+    networks:
+      - time_management_network
+
+secrets:
+  secret_key:
+    file: secrets/secret_key.txt
+  db_user_pwd:
+    file: secrets/db_user_pwd.txt
+
+volumes:
+  db-volume:
+  log-volume:
+
+networks:
+  time_management_network:
